@@ -25,21 +25,29 @@ void setup()
 
   Serial.println(WiFi.localIP());
 
-  // server.on(
-  //   "/image",
-  //   HTTP_POST,
-  //   [](AsyncWebServerRequest * request){}, 
-  //   NULL, 
-  //   [](AsyncWebServerRequest * request, uint8_t *data, size_t len, size_t index, size_t total) {
-  //     for (size_t i = 0; i < len; i++) {
-  //       Serial.write(data[i]);
-  //     }
- 
-  //     request->send(200);
-  //   }
-  // );
+  server.on(
+    "/image",
+    HTTP_POST,
+    [](AsyncWebServerRequest * request){}, 
+    NULL, 
+    [](AsyncWebServerRequest * request, uint8_t *data, size_t len, size_t index, size_t total) {
+      for (size_t i = 0; i < len; i++) {
+        Serial.print(data[i]);
+      }
+
+      Serial.println();
+      
+      for (size_t i = 0; i < len; i++) {
+        Serial.print(i);
+      }
+
+      request->send(200);
+    }
+  );
 
   server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.html");
+
+  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
 
   server.begin();
 }
