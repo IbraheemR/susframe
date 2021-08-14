@@ -1,9 +1,50 @@
-#include <Arduino.h>
+#include "Arduino.h"
+#include "ESPAsyncWebServer.h"
+#include "WiFi.h"
+#include "SPIFFS.h"
 
-void setup() {
-  // put your setup code here, to run once:
+#include "WifiCredentials.h"
+
+AsyncWebServer server(80);
+
+void setup()
+{
+  Serial.begin(115200);
+
+  if (!SPIFFS.begin(true)) {
+    Serial.println("SPIFFS error!");
+    return;
+  }
+
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    Serial.println("Connecting to WiFi...");
+    delay(1000);
+  }
+
+  Serial.println(WiFi.localIP());
+
+  // server.on(
+  //   "/image",
+  //   HTTP_POST,
+  //   [](AsyncWebServerRequest * request){}, 
+  //   NULL, 
+  //   [](AsyncWebServerRequest * request, uint8_t *data, size_t len, size_t index, size_t total) {
+  //     for (size_t i = 0; i < len; i++) {
+  //       Serial.write(data[i]);
+  //     }
+ 
+  //     request->send(200);
+  //   }
+  // );
+
+  server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.html");
+
+  server.begin();
 }
 
-void loop() {
-  // put your main code here, to run repeatedly:
+void loop()
+{
+
 }
