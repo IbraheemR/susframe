@@ -1,23 +1,20 @@
 <script lang="ts">
-  import FileUpload from "./FileUpload.svelte";
-  import { processImage } from "./process-image";
-  let image: Blob;
+  import ConversionCanvas from "./ConversionCanvas.svelte";
 
+  import FileUpload from "./FileUpload.svelte";
+  let image: Blob;
   let downscaledImage: Uint8Array;
-  $: (async () => {
-    if (image) downscaledImage = await processImage(image);
-  })();
 
   function send() {
-    //TODO: rip out the websockets, they are unecessary. 1436 limit on esp32
-    fetch("http://192.168.1.87/image", {
+    fetch("/image", {
       method: "post",
-      body: downscaledImage.slice(0, 66),
+      body: downscaledImage,
     });
   }
 </script>
 
 <main>
+  <ConversionCanvas {image} bind:downscaledImage />
   <FileUpload bind:image />
-  <button on:click={send}>Upload</button>
+  <button on:click={send} disabled={!image}>Display Image</button>
 </main>

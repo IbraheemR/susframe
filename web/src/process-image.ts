@@ -2,11 +2,14 @@ import * as nearestColor from "nearest-color";
 
 let nc = nearestColor.from({ red: "red", black: "black", white: "white" });
 
-export async function processImage(image: Blob): Promise<Uint8Array> {
+export async function processImage(
+  image: Blob,
+  ctx: CanvasRenderingContext2D
+): Promise<Uint8Array> {
   ctx.clearRect(0, 0, 264, 176);
   ctx.drawImage(await createImageBitmap(image), 0, 0, 264, 176);
 
-  let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  let imageData = ctx.getImageData(0, 0, 264, 176);
 
   const data = imageData.data;
 
@@ -22,7 +25,7 @@ export async function processImage(image: Blob): Promise<Uint8Array> {
         b: data[i + 3],
       };
 
-      let { r, g, b } = nc(color).rgb; // Since it is grayscale only sample the red channel
+      let { r, g, b } = nc(color).rgb;
 
       data[i] = r;
       data[i + 1] = g;
@@ -37,30 +40,21 @@ export async function processImage(image: Blob): Promise<Uint8Array> {
   let b = new Uint8Array((264 * 176 * 2) / 8);
 
   for (var i = 0; i < data.length; i += 4) {
-    let p = 0;
+    let pixelI = Math.floor(i / 4);
+
+    let pixelColor = 0;
     if (data[i] === 255) {
       if (data[i + 1] === 255) {
-        p = 0b00; // w
+        pixelColor = 0b00; // w
       } else {
-        p = 0b10; //r
+        pixelColor = 0b10; //r
       }
     } else {
-      p = 0b01; // b
+      pixelColor = 0b01; // b
     }
 
-    b[Math.floor(i / 16)] |= p << (i / 4) % 4;
+    b[Math.floor(pixelI / 4)] |= pixelColor << ((pixelI % 4) * 2);
   }
 
   return b;
 }
-
-let canvas = document.createElement("canvas");
-// canvas.style.display = "none"
-document.body.appendChild(canvas);
-
-let ctx = canvas.getContext("2d");
-
-canvas.width = 264;
-canvas.height = 176;
-
-ctx.filter = "contrast(5)";

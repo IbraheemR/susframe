@@ -1,9 +1,19 @@
 <script lang="ts">
   export let image: Blob;
 
-  function change(inputEvent) {
-    image = (inputEvent.target as HTMLInputElement).files[0];
+  function change() {
+    image = input.files[0];
   }
+
+  let input: HTMLInputElement;
 </script>
 
-<input type="file" accept=".jpg, .jpeg, .png, .webp" on:change={change} />
+<button on:click={() => input.click()}>{image ? "Change" : "Add"} image</button>
+
+<input
+  type="file"
+  bind:this={input}
+  accept=".jpg, .jpeg, .png, .webp"
+  on:change={change}
+  style="display: none;"
+/>

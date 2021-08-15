@@ -18,12 +18,33 @@ ThinkInk_270_Tricolor_C44 display(EPD_DC, EPD_RST, EPD_ECS, EPD_SRCS, EPD_BUSY);
 
 TaskHandle_t WriteDisplayHandle;
 
+
+uint8_t displayData[264 * 176 * 2 / 8];
+
 void writeDisplay(void * parameter) 
 {
-  display.clearBuffer();
-  display.fillRect(50, 50, 100, 100, EPD_RED);
+  uint8_t * data = (uint8_t * ) parameter;
+
+  Serial.println("DATA REVIEVED!");
+
+  for (size_t i = 0; i < 264 * 176 * 2 / 8; i++)
+  {
+
+    int pos = i * 4;
+    int x = pos % 264;
+    int y = pos / 264;
+
+    display.writePixel(x, y, data[i] & 0b11);
+    display.writePixel(x+1, y, (data[i] >> 2) & 0b11);
+    display.writePixel(x+2, y, (data[i] >> 4) & 0b11);
+    display.writePixel(x+3, y, (data[i] >> 6) & 0b11);
+  }
+
+  Serial.println("DISPLAYING...");
 
   display.display();
+
+  Serial.println("DONE!");
 
   vTaskDelete(NULL);
 }
@@ -56,20 +77,28 @@ void setup()
 
   Serial.println(WiFi.localIP());
 
+  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
+
   server.on(
     "/image",
     HTTP_POST,
-    [](AsyncWebServerRequest * request){}, 
+    [](AsyncWebServerRequest * request){
+      request->send(200);
+    }, 
     NULL, 
     [](AsyncWebServerRequest * request, uint8_t *data, size_t len, size_t index, size_t total) {
-      request->send(200);
-      xTaskCreate(writeDisplay, "writeDisplay", 5000, NULL, 2, &WriteDisplayHandle);
+      for(size_t i=0; i<len; i++){
+        displayData[i+index] = data[i];
+      }
+      if(index + len == total){
+        xTaskCreate(writeDisplay, "writeDisplay", 5000, (void * ) &displayData, 2, &WriteDisplayHandle);
+      }
+    
     }
   );
 
   server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.html");
 
-  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
 
   server.begin();
 
