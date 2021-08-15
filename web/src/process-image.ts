@@ -1,13 +1,55 @@
-import * as nearestColor from "nearest-color";
+import { from as nc } from "nearest-color";
 
-let nc = nearestColor.from({ red: "red", black: "black", white: "white" });
+let nearestColor = nc({ red: "red", black: "black", white: "white" });
+
+export type ProcessImageOptions = {
+  contrast: number;
+  saturation: number;
+  hueAngle: number;
+  imageMode: "fit" | "fill" | "stretch";
+  bgColor: "red" | "black" | "white";
+};
 
 export function processImage(
   image: HTMLImageElement,
-  ctx: CanvasRenderingContext2D
+  ctx: CanvasRenderingContext2D,
+  { contrast, saturation, hueAngle, imageMode, bgColor }: ProcessImageOptions
 ): Uint8Array {
-  ctx.clearRect(0, 0, 264, 176);
-  ctx.drawImage(image, 0, 0, 264, 176);
+  ctx.filter = `hue-rotate(${hueAngle}deg) contrast(${contrast}) saturate(${saturation})`;
+
+  ctx.fillStyle = bgColor;
+  ctx.fillRect(0, 0, 264, 176);
+
+  let a = 264 / image.naturalWidth;
+  let b = 176 / image.naturalHeight;
+
+  let k, w, h;
+  switch (imageMode) {
+    case "stretch":
+      ctx.drawImage(image, 0, 0, 264, 176);
+      break;
+
+    case "fit":
+      k = Math.min(a, b);
+
+      w = image.naturalWidth * k;
+      h = image.naturalHeight * k;
+
+      ctx.drawImage(image, (264 - w) / 2, (176 - h) / 2, w, h);
+      break;
+
+    case "fill":
+      k = Math.max(a, b);
+
+      w = image.naturalWidth * k;
+      h = image.naturalHeight * k;
+
+      ctx.drawImage(image, (264 - w) / 2, (176 - h) / 2, w, h);
+      break;
+
+    default:
+      break;
+  }
 
   let imageData = ctx.getImageData(0, 0, 264, 176);
 
@@ -25,7 +67,7 @@ export function processImage(
         b: data[i + 3],
       };
 
-      let { r, g, b } = nc(color).rgb;
+      let { r, g, b } = nearestColor(color).rgb;
 
       data[i] = r;
       data[i + 1] = g;
@@ -37,7 +79,7 @@ export function processImage(
 
   ctx.putImageData(imageData, 0, 0);
 
-  let b = new Uint8Array((264 * 176 * 2) / 8);
+  let buffer = new Uint8Array((264 * 176 * 2) / 8);
 
   for (var i = 0; i < data.length; i += 4) {
     let pixelI = Math.floor(i / 4);
@@ -53,8 +95,8 @@ export function processImage(
       pixelColor = 0b01; // b
     }
 
-    b[Math.floor(pixelI / 4)] |= pixelColor << ((pixelI % 4) * 2);
+    buffer[Math.floor(pixelI / 4)] |= pixelColor << ((pixelI % 4) * 2);
   }
 
-  return b;
+  return buffer;
 }
