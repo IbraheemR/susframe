@@ -3,8 +3,12 @@
 #include "WiFi.h"
 #include "SPIFFS.h"
 #include "Adafruit_ThinkInk.h"
+#include "DNSServer.h"
 
-#include "WifiCredentials.h"
+#include "WifiCredentials.h" // Comment out this line to run in access point mode
+
+#define DNS_PORT 53
+DNSServer dnsServer;
 
 AsyncWebServer server(80);
 
@@ -68,16 +72,26 @@ void setup()
     return;
   }
 
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    Serial.println("Connecting to WiFi...");
-    delay(1000);
-  }
+  #if defined(WIFI_SSID)
+  
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    while (WiFi.status() != WL_CONNECTED)
+    {
+      Serial.println("Connecting to WiFi...");
+      delay(1000);
+    }
 
-  Serial.println(WiFi.localIP());
+    Serial.println(WiFi.localIP());
+  
+  #else
+  
+    WiFi.softAP("SUSFRAME");
+    Serial.println(WiFi.softAPIP());
 
-  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
+    dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
+    dnsServer.start(DNS_PORT, "*", WiFi.softAPIP());
+  #endif // ACCESSPOINT
+  
 
   server.on(
     "/image",
@@ -107,5 +121,11 @@ void setup()
 
 void loop()
 {
+  #if defined(WIFI_SSID)
+  
+  #else
+    dnsServer.processNextRequest();
 
+  #endif // WIFI_SSID
+  
 }
