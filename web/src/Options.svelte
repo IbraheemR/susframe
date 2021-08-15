@@ -2,13 +2,17 @@
   import type { ProcessImageOptions } from "./process-image";
   import Slider from "./Slider.svelte";
 
-  let hueAngle, contrast, saturation, imageMode, bgColor;
+  let hueAngle,
+    contrast = 1,
+    saturation,
+    imageMode,
+    bgColor;
 
   export let options: ProcessImageOptions;
 
   $: options = {
-    contrast,
     saturation,
+    contrast,
     hueAngle,
     imageMode,
     bgColor,
@@ -21,11 +25,12 @@
   Hue Rotate
 </Slider>
 
-<Slider min={0} max={10} initial={4} bind:value={contrast} {disabled}>
+<!-- <Slider min={0} max={10} initial={4} bind:value={contrast} {disabled}>
   Contrast
-</Slider>
+</Slider> -->
+<!-- NOTE: removed contrast since it didn't seem to do much once I fixed a bug that set green = blue and blue = alpha -->
 
-<Slider min={0} max={10} initial={1} bind:value={saturation} {disabled}>
+<Slider min={0} max={5} initial={1} bind:value={saturation} {disabled}>
   Saturation
 </Slider>
 
