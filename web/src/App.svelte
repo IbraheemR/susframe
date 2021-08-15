@@ -2,7 +2,7 @@
   import ConversionCanvas from "./ConversionCanvas.svelte";
 
   import FileUpload from "./FileUpload.svelte";
-  let image: Blob;
+  let image: HTMLImageElement;
   let downscaledImage: Uint8Array;
 
   function send() {

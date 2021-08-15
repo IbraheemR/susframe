@@ -2,12 +2,12 @@ import * as nearestColor from "nearest-color";
 
 let nc = nearestColor.from({ red: "red", black: "black", white: "white" });
 
-export async function processImage(
-  image: Blob,
+export function processImage(
+  image: HTMLImageElement,
   ctx: CanvasRenderingContext2D
-): Promise<Uint8Array> {
+): Uint8Array {
   ctx.clearRect(0, 0, 264, 176);
-  ctx.drawImage(await createImageBitmap(image), 0, 0, 264, 176);
+  ctx.drawImage(image, 0, 0, 264, 176);
 
   let imageData = ctx.getImageData(0, 0, 264, 176);
 

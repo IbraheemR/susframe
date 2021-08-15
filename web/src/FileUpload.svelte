@@ -1,8 +1,16 @@
 <script lang="ts">
-  export let image: Blob;
+  export let image: HTMLImageElement;
 
   function change() {
-    image = input.files[0];
+    const reader = new FileReader();
+    reader.onloadend = (e) => {
+      let i = new Image();
+      i.src = e.target.result as string;
+      i.onload = () => {
+        image = i;
+      };
+    };
+    reader.readAsDataURL(input.files[0]);
   }
 
   let input: HTMLInputElement;
