@@ -9,3 +9,5 @@ Made using
 - Platform IO
 - sveltejs
 - Small IKEA picture frame
+
+Run `./copy_web_data.sh` to build the svelte site and copy output to `/data/`. Files can them be uploaded to SPIFFS as normal.
